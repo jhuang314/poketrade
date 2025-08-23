@@ -773,10 +773,10 @@ src
 
 - **Goal:** Build the visual representation of a single Pokémon card and allow Next.js to optimize images from the external source.
 - **Steps:**
-  1.  Modify `next.config.js` to whitelist the image hostname.
+  1.  Modify `next.config.ts` to whitelist the image hostname.
 
-      ```javascript
-      // next.config.js
+      ```typescript
+      // next.config.ts
       /** @type {import('next').NextConfig} */
       const nextConfig = {
         images: {

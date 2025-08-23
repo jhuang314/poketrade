@@ -8,7 +8,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the basic project structure.
 - **Steps:**
-  1.  Run `npx create-next-app@latest pocket-matchmaker` in your terminal. Select options for TypeScript, ESLint, and Tailwind CSS.
+  1.  Run `npx create-next-app@latest pocket-matchmaker` in your terminal. Select options for TypeScript, ESLint, Tailwind CSS, and the App Router.
   2.  Navigate into the new directory: `cd pocket-matchmaker`.
   3.  Install the Supabase client library: `npm install @supabase/supabase-js`.
   4.  Run `npm run dev` to ensure the default Next.js application starts correctly.
@@ -86,11 +86,14 @@ The tasks are ordered by dependency. Complete them sequentially.
       NEXT_PUBLIC_SUPABASE_URL=YOUR_PROJECT_URL
       NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
       ```
-  4.  Create a utility file `lib/supabaseClient.js` to initialize the client singleton:
-      ```javascript
+  4.  Create a utility file `lib/supabase/client.ts` to initialize the client singleton for use in client components:
+
+      ```typescript
       import { createClient } from "@supabase/supabase-js";
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
       export const supabase = createClient(supabaseUrl, supabaseAnonKey);
       ```
 
@@ -98,48 +101,81 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Build the user interface for signing in and creating an account.
 - **Steps:**
-  1.  Create a new page file at `pages/login.js`.
-  2.  Build a React component with a form containing fields for:
+  1.  Create a new page file at `app/login/page.tsx`.
+  2.  This page must be a Client Component. Add `"use client";` to the top of the file.
+  3.  Build a React component with a form containing fields for:
       - Email (`type="email"`)
       - Password (`type="password"`)
-  3.  Build a separate form component for signup with fields for:
+  4.  Build a separate form component for signup with fields for:
       - Username (`type="text"`)
       - Email (`type="email"`)
       - Password (`type="password"`)
       - Friend ID (`type="text"`, `placeholder="1234-1234-1234-1234"`)
-  4.  Use `useState` to manage the state of the form inputs.
-  5.  Add a button or link to toggle between the Login and Signup forms on the page.
-  6.  Style the forms using Tailwind CSS. Do not implement the submission logic yet.
+  5.  Use `useState` to manage the state of the form inputs.
+  6.  Add a button or link to toggle between the Login and Signup forms on the page.
+  7.  Style the forms using Tailwind CSS. Do not implement the submission logic yet.
 
 **Task 1.5: Implement Backend Authentication Logic**
 
 - **Goal:** Make the login and signup forms functional.
 - **Steps:**
-  1.  Create the API route file `pages/api/auth/signup.js`.
-  2.  In this file, handle `POST` requests. Parse the `email`, `password`, `username`, and `friendId` from the request body.
-  3.  Validate and sanitize the inputs. For `friendId`, enforce its specific format of `/^\d{4}-\d{4}-\d{4}-\d{4}$`. Prevent XSS attacks by sanitizing all inputs.
-  4.  Use the Supabase client: `const { data, error } = await supabase.auth.signUp({ email, password })`.
-  5.  If the signup is successful, insert a new row into the `profiles` table with the `id` from `data.user.id`, `username`, and `friendId`.
-  6.  Return a success or error JSON response.
-  7.  Create the API route file `pages/api/auth/login.js`.
-  8.  Handle `POST` requests, parse `email` and `password`, and use `supabase.auth.signInWithPassword({ email, password })`.
-  9.  Return a success or error response.
-  10. Connect the UI forms from Task 1.4 to call these API endpoints upon submission.
+  1.  Create the API route file `app/api/auth/signup/route.ts`.
+  2.  In this file, export an async function named `POST` that accepts a `Request` object.
+
+      ```typescript
+      // app/api/auth/signup/route.ts
+      import { NextResponse } from "next/server";
+
+      export async function POST(request: Request) {
+        // Logic goes here
+      }
+      ```
+
+  3.  Inside `POST`, parse the `email`, `password`, `username`, and `friendId` from the request body using `await request.json()`.
+  4.  Validate and sanitize the inputs. For `friendId`, enforce its specific format of `/^\d{4}-\d{4}-\d{4}-\d{4}$`. Prevent XSS attacks by sanitizing all inputs.
+  5.  Use a server-side Supabase client (see Supabase docs for App Router setup) to perform the signup: `const { data, error } = await supabase.auth.signUp({ email, password })`.
+  6.  If the signup is successful, insert a new row into the `profiles` table with the `id` from `data.user.id`, `username`, and `friendId`.
+  7.  Return a `NextResponse.json()` with a success or error message.
+  8.  Create the API route file `app/api/auth/login/route.ts` and implement a similar `POST` handler for login using `supabase.auth.signInWithPassword({ email, password })`.
+  9.  Connect the UI forms from Task 1.4 to call these API endpoints upon submission.
 
 **Task 1.6: Implement Global Auth State and Navbar**
 
 - **Goal:** Make the application aware of the user's login state and reflect it in the UI.
 - **Steps:**
-  1.  Create a global context for authentication. Create a file `context/AuthContext.js`.
-  2.  In this context, use `useState` and `useEffect` to listen to Supabase's `onAuthStateChange` event. Store the user session in the context's state.
-  3.  Wrap the entire application in `pages/_app.js` with your new `AuthProvider`.
-  4.  Create a `components/Navbar.js` component.
+  1.  Create a global context for authentication in a file like `context/AuthContext.tsx`. This must be a client component (`"use client";`).
+  2.  In this context provider, use `useState` and `useEffect` to listen to Supabase's `onAuthStateChange` event. Store the user session in the context's state.
+  3.  In the root layout `app/layout.tsx`, wrap the `children` prop with your new `AuthProvider`.
+
+      ```tsx
+      // app/layout.tsx
+      import { AuthProvider } from "@/context/AuthContext";
+      import Navbar from "@/components/Navbar";
+
+      export default function RootLayout({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) {
+        return (
+          <html lang="en">
+            <body>
+              <AuthProvider>
+                <Navbar />
+                {children}
+              </AuthProvider>
+            </body>
+          </html>
+        );
+      }
+      ```
+
+  4.  Create a `components/Navbar.tsx` component. It must also be a client component to use the context.
   5.  Inside the Navbar, use `useContext` to access the auth state.
   6.  Conditionally render links:
       - If no user, show "Login".
       - If a user is logged in, show links to "Dashboard", "Cards", and a "Logout" button.
   7.  The "Logout" button should call `supabase.auth.signOut()`.
-  8.  Add the `<Navbar />` to the main layout in `pages/_app.js`.
 
 ### Phase 2: Displaying Pokémon Card Data
 
@@ -147,8 +183,9 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Build the reusable hook for fetching and caching all Pokémon card data.
 - **Steps:**
-  1.  Create a new file `hooks/usePokemonData.js`.
-  2.  Inside the custom hook, implement the following logic:
+  1.  Create a new file `hooks/usePokemonData.ts`. This hook must be used in a Client Component.
+  2.  Define interfaces for your data types (e.g., `Card`, `Set`, `Rarity`).
+  3.  Inside the custom hook, implement the following logic:
       - On mount (`useEffect`), check `localStorage` for an item `pokemon_data`.
       - If it exists, parse it. Check its timestamp. If it's less than 24 hours old, set the data to state and return.
       - If it doesn't exist or is stale, perform `fetch` requests to the three GitHub URLs: `cards.json`, `sets.json`, and `rarity.json`.
@@ -158,14 +195,22 @@ The tasks are ordered by dependency. Complete them sequentially.
         - Iterate through the `cards.json` array. For each card, add the enriched fields: `id`, `rarityFullName`, and `setName`.
       - Store the final enriched array in `localStorage` as a stringified JSON object with a new timestamp.
       - Set the data to state.
-  3.  The hook should return an object like `{ data, isLoading, error }`.
+  4.  The hook should return an object like `{ data, isLoading, error }`.
 
 **Task 2.2: Create the Reusable Card Component**
 
 - **Goal:** Build the visual representation of a single Pokémon card.
 - **Steps:**
-  1.  Create `components/Card.js`.
-  2.  The component accepts props: `cardData`, `isSelected`, `isDisabled`, `onToggle`.
+  1.  Create `components/Card.tsx`. It must be a client component (`"use client";`) because it handles user interaction.
+  2.  Define the component's props with TypeScript interfaces:
+      ```typescript
+      interface CardProps {
+        cardData: Card; // Your enriched card type from the hook
+        isSelected: boolean;
+        isDisabled: boolean;
+        onToggle: (cardId: string) => void;
+      }
+      ```
   3.  Render an `<img>` tag. The `src` will be `https://raw.githubusercontent.com/flibustier/pokemon-tcg-exchange/refs/heads/main/public/images/cards/${cardData.imageName}`.
   4.  Render the card's name (`cardData.label.eng`) and rarity (`cardData.rarityFullName`).
   5.  Use the `isSelected` prop to conditionally apply a CSS class (e.g., `filter grayscale-0` vs `filter grayscale`).
@@ -176,7 +221,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the main page for users to manage their lists, including tabs and filters.
 - **Steps:**
-  1.  Create the page file `pages/cards.js`.
+  1.  Create the page file `app/cards/page.tsx`. This page must be a client component (`"use client";`).
   2.  At the top, create a `TabNavigation` component with two buttons: "Wishlist" and "Trade List". Manage the active tab with `useState`.
   3.  Below the tabs, add UI controls:
       - An `<input type="text">` for searching by name.
@@ -188,7 +233,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Populate the Card Management page with cards and make the filters work.
 - **Steps:**
-  1.  In `pages/cards.js`, call the `usePokemonData()` hook to get the card data.
+  1.  In `app/cards/page.tsx`, call the `usePokemonData()` hook to get the card data.
   2.  Use `useMemo` to create a `filteredCards` array. This memoized value should re-calculate whenever the source `data`, `searchQuery`, or `rarityFilter` changes.
   3.  The filtering logic should be case-insensitive and check if the card's name includes the search query and if its rarity matches the filter.
   4.  Render the `filteredCards` array in a responsive grid layout using Tailwind CSS (`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4`).
@@ -200,8 +245,8 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** When the `/cards` page loads, fetch the user's saved lists and initialize the selection state.
 - **Steps:**
-  1.  Create the protected API route `pages/api/user/me.js`. It should query and return the user's `profiles`, `user_wishlist` identifiers, and `user_trade_list` identifiers.
-  2.  In `pages/cards.js`, use a library like SWR (`useSWR`) to fetch data from `/api/user/me`.
+  1.  Create the protected API route `app/api/user/me/route.ts`. It should query and return the user's `profiles`, `user_wishlist` identifiers, and `user_trade_list` identifiers.
+  2.  In `app/cards/page.tsx`, use a library like SWR (`useSWR`) to fetch data from `/api/user/me`.
   3.  Create two `Set` objects in state: `wishlistSelection` and `tradeListSelection`.
   4.  In a `useEffect` hook that runs when the user data loads, initialize these `Set`s with the card identifiers returned from the API.
   5.  Pass the correct `isSelected` prop to each `<Card />` component based on the active tab and whether the card's ID is in the corresponding selection set.
@@ -210,7 +255,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Allow users to click on cards to add or remove them from their selections.
 - **Steps:**
-  1.  Create the `onToggle` function in `pages/cards.js`.
+  1.  Create the `onToggle` function in `app/cards/page.tsx`.
   2.  This function should:
       - Check which tab is active ("wishlist" or "tradeList").
       - If "tradeList", check if the toggled card's rarity is one of the allowed types. If not, show a notification (e.g., using a toast library like `react-hot-toast`) and return early.
@@ -222,17 +267,17 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the endpoints that will persist the user's changes to the database.
 - **Steps:**
-  1.  Create the protected API route `pages/api/user/wishlist/batch-update.js`.
-  2.  It should accept a `POST` request with a body `{ toAdd: string[], toRemove: string[] }`.
-  3.  Use `supabase.from('user_wishlist').insert(...)` for the `toAdd` array.
-  4.  Use `supabase.from('user_wishlist').delete().in('card_identifier', toRemove)` for the `toRemove` array.
-  5.  Repeat this process for `pages/api/user/tradelist/batch-update.js`.
+  1.  Create the protected API route `app/api/user/wishlist/batch-update/route.ts`.
+  2.  Export a `POST` function that accepts a `NextRequest`.
+  3.  Parse the body: `const { toAdd, toRemove }: { toAdd: string[]; toRemove: string[] } = await request.json()`.
+  4.  Use a server-side Supabase client to `insert` the `toAdd` array and `delete` from the `toRemove` array.
+  5.  Repeat this process for `app/api/user/tradelist/batch-update/route.ts`.
 
 **Task 3.4: Implement "Save Changes" Functionality**
 
 - **Goal:** Allow the user to commit their changes from the UI to the backend.
 - **Steps:**
-  1.  In `pages/cards.js`, keep track of the initial lists fetched from the server.
+  1.  In `app/cards/page.tsx`, keep track of the initial lists fetched from the server.
   2.  Create a `SaveChangesBar` component that is only visible when the current selection sets differ from the initial lists.
   3.  The "Save" button in this bar will:
       - Calculate the differences (`toAdd`, `toRemove`) for both the wishlist and tradelist.
@@ -246,54 +291,66 @@ The tasks are ordered by dependency. Complete them sequentially.
 - **Steps:**
   1.  **Install Supabase Server-Side Helpers:** This library provides tools for securely handling sessions and protecting against CSRF attacks.
       ```bash
-      npm install @supabase/ssr
+      npm install @supabase/ssr cookies-next
       ```
-  2.  **Refactor the `batch-update` API:** Open `pages/api/user/wishlist/batch-update.js`. Replace the existing client initialization with the server-side client, which automatically handles CSRF protection. Also, add input validation to limit the size of the incoming arrays.
+  2.  **Refactor the `batch-update` API:** Open `app/api/user/wishlist/batch-update/route.ts`. Use the Supabase server client for the App Router, which automatically handles session management and CSRF protection from cookies.
 
-      ```javascript
-      import { createPagesServerClient } from "@supabase/ssr";
+      ```typescript
+      import { createServerClient } from "@supabase/ssr";
+      import { cookies } from "next/headers";
+      import { NextResponse } from "next/server";
 
       const MAX_BATCH_SIZE = 1000; // Define a reasonable limit
 
-      export default async function handler(req, res) {
-        if (req.method !== "POST") {
-          return res.status(405).json({ message: "Method Not Allowed" });
-        }
-
-        // The server client automatically validates the user's cookie and protects against CSRF.
-        const supabase = createPagesServerClient({ req, res });
+      export async function POST(request: Request) {
+        const { toAdd, toRemove } = await request.json();
+        const cookieStore = cookies();
+        const supabase = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { cookies: { get: (name) => cookieStore.get(name)?.value } },
+        );
 
         const {
           data: { session },
         } = await supabase.auth.getSession();
         if (!session) {
-          return res.status(401).json({ message: "Unauthorized" });
+          return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
+            status: 401,
+          });
         }
-
-        const { toAdd, toRemove } = req.body;
 
         // --- DoS Protection: Input Size Validation ---
         if (!Array.isArray(toAdd) || !Array.isArray(toRemove)) {
-          return res.status(400).json({ message: "Invalid payload format." });
+          return new NextResponse(
+            JSON.stringify({ message: "Invalid payload format." }),
+            { status: 400 },
+          );
         }
         if (toAdd.length > MAX_BATCH_SIZE || toRemove.length > MAX_BATCH_SIZE) {
-          return res
-            .status(413)
-            .json({ message: `Batch size cannot exceed ${MAX_BATCH_SIZE}.` });
+          return new NextResponse(
+            JSON.stringify({
+              message: `Batch size cannot exceed ${MAX_BATCH_SIZE}.`,
+            }),
+            { status: 413 },
+          );
         }
         // ---
 
         // Proceed with your Supabase insert and delete logic here...
         // ...
 
-        res.status(200).json({ message: "Wishlist updated successfully." });
+        return new NextResponse(
+          JSON.stringify({ message: "Wishlist updated successfully." }),
+          { status: 200 },
+        );
       }
       ```
 
   3.  **Apply the Pattern:** Apply this same security pattern to all other API routes that handle `POST` requests or modify data:
-      - `pages/api/user/tradelist/batch-update.js`
-      - `pages/api/auth/signup.js`
-      - `pages/api/auth/login.js` (while login doesn't change database records directly, using the server client is still best practice for consistency and security).
+      - `app/api/user/tradelist/batch-update/route.ts`
+      - `app/api/auth/signup/route.ts`
+      - `app/api/auth/login/route.ts`
 
 ### Phase 4: Matchmaking
 
@@ -301,9 +358,9 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the core logic that finds potential trades.
 - **Steps:**
-  1.  Create the protected API route `pages/api/matches.js`.
-  2.  Inside the function, implement a simple in-memory cache for the `cards.json` data to avoid re-fetching on every call.
-  3.  Get the current user's ID.
+  1.  Create the protected API route `app/api/matches/route.ts`.
+  2.  Inside the `GET` route handler, implement a simple in-memory cache for the `cards.json` data to avoid re-fetching on every call.
+  3.  Get the current user's session using a server-side Supabase client.
   4.  Fetch the user's wishlist and tradelist.
   5.  Construct a SQL query to find potential matches. This is the most complex query. A simplified approach would be:
       - Find all users (B) who want a card that the current user (A) has on their tradelist.
@@ -315,7 +372,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Display the found matches to the user in a clear, actionable way.
 - **Steps:**
-  1.  Create the protected page `pages/matches.js`.
+  1.  Create the protected page `app/matches/page.tsx`. This must be a client component to use SWR.
   2.  Use SWR to fetch data from `/api/matches`.
   3.  Display a loading indicator while the data is being fetched.
   4.  If no matches are found, display a friendly message.
@@ -331,7 +388,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Ensure the application is usable and looks good on all screen sizes.
 - **Steps:**
-  1.  Review every page (`/login`, `/cards`, `/dashboard`, `/matches`) on a mobile, tablet, and desktop viewport.
+  1.  Review every page (`/login`, `/cards`, `/dashboard`, `/matches`) on mobile, tablet, and desktop viewports.
   2.  Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`) to adjust layouts, font sizes, and spacing as needed.
   3.  Pay special attention to the card grid on the `/cards` page, ensuring the number of columns adjusts appropriately.
 
@@ -347,16 +404,16 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Protect computationally expensive API routes, like `/api/matches`, from abuse and potential DoS attacks by implementing rate limiting.
 - **Steps:**
-  1.  **Create Middleware File:** In the root of your project (or inside a `src` directory if you have one), create a file named `middleware.js`. Vercel will automatically execute this file for incoming requests.
-  2.  **Implement IP-Based Rate Limiting:** Add the following code to `middleware.js`. This is a basic implementation that stores visitor request times in memory to block them if they make too many requests in a short period.
+  1.  **Create Middleware File:** In the root of your project (or inside a `src` directory if you have one), create a file named `middleware.ts`. Vercel will automatically execute this file for incoming requests.
+  2.  **Implement IP-Based Rate Limiting:** Add the following code to `middleware.ts`. This is a basic implementation that stores visitor request times in memory to block them if they make too many requests in a short period.
 
-      ```javascript /poketrade/middleware.js
-      import { NextResponse } from "next/server";
+      ```typescript /poketrade/middleware.ts
+      import { NextRequest, NextResponse } from "next/server";
 
       // A simple in-memory store for rate limiting
-      const rateLimitStore = new Map();
+      const rateLimitStore = new Map<string, number[]>();
 
-      export function middleware(request) {
+      export function middleware(request: NextRequest) {
         // We only want to rate limit the matchmaking API
         if (request.nextUrl.pathname.startsWith("/api/matches")) {
           const ip = request.ip ?? "127.0.0.1";
@@ -396,18 +453,15 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Implement critical security measures to protect the application and user data before deployment.
 - **Steps:**
-  1.  **Implement API Rate Limiting:**
-      - Create a middleware function that applies to all sensitive API routes (`/api/auth/*`, `/api/user/*`, `/api/matches`).
+  1.  **Confirm API Rate Limiting:**
+      - Expand the logic in `middleware.ts` to apply rate limiting to all sensitive API routes (`/api/auth/*`, `/api/user/*`, `/api/matches`).
       - Use the `rateLimitStore` to track request timestamps keyed by IP address.
       - Return a `429 Too Many Requests` response if an IP exceeds the defined request limit.
-  2.  **Implement CSRF Protection:**
-      - Enhance the API middleware to include CSRF protection using the "Double Submit Cookie" pattern.
-      - On initial page load or login, generate a random CSRF token.
-      - Set the token in a secure cookie and also provide it to the client to be stored in memory.
-      - For all state-changing `POST` requests, require the client to send the token in a custom header (e.g., `X-CSRF-Token`).
-      - The middleware must verify that the token in the header matches the token in the cookie.
+  2.  **Verify CSRF Protection:**
+      - The `@supabase/ssr` library's `createServerClient` (for Route Handlers) and `createBrowserClient` (for Client Components) work together to handle CSRF protection automatically using cookies.
+      - Ensure you are using these official Supabase helper clients for all database and auth operations to benefit from this built-in protection. No manual implementation of the "Double Submit Cookie" pattern is required.
   3.  **Add Server-Side Input Sanitization:**
-      - In the `/api/auth/signup` endpoint, add logic to sanitize the `username` field before saving it to the database.
+      - In the `app/api/auth/signup/route.ts` endpoint, add logic to sanitize the `username` field before saving it to the database.
       - Use a library or regex to strip characters that could be part of HTML/script tags (e.g., `<`, `>`).
 
 **Task 5.4: Vercel Deployment**

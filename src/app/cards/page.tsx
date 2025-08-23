@@ -175,9 +175,6 @@ export default function CardsPage() {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner />
-        <div>{authLoading}</div>
-        <div>{cardsLoading}</div>
-        <div>{userDataLoading}</div>
       </div>
     );
   }

@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       async (_event, session) => {
         console.log("session", session, "_event", _event);
         setUser(session?.user ?? null);
+        setLoading(false);
         if (session?.user) {
           const { data: userProfile } = await supabase
             .from("profiles")
@@ -33,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
         }
-        setLoading(false);
       },
     );
 

@@ -11,6 +11,7 @@ export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [friendId, setFriendId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,7 +25,13 @@ export default function SignupForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, confirmPassword }),
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        confirmPassword,
+        friendId,
+      }),
     });
 
     if (res.ok) {
@@ -92,6 +99,19 @@ export default function SignupForm() {
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="friendId">Friend ID</label>
+        <Input
+          id="friendId"
+          type="text"
+          value={friendId}
+          onChange={(e) => setFriendId(e.target.value)}
+          placeholder="0000-0000-0000-0000"
+          pattern="\d{4}-\d{4}-\d{4}-\d{4}"
+          title="Friend ID must be in the format XXXX-XXXX-XXXX-XXXX"
           required
         />
       </div>

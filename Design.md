@@ -39,37 +39,37 @@ The architecture is client-centric. The Vercel backend's role is strictly limite
 
 ```mermaid
 graph TD
-    subgraph User's Device
+    subgraph "User's Device"
         A[Client/Browser]
         A_Cache[LocalStorage Cache]
     end
 
-    subgraph Vercel Platform
+    subgraph "Vercel Platform"
         B["Next.js Frontend (Static Shells)"]
         C["Next.js API Routes (Auth/DB only)"]
     end
 
-    subgraph Supabase Cloud
+    subgraph "Supabase Cloud"
         D[Supabase Auth]
         E[PostgreSQL Database]
     end
 
-    subgraph External Data "GitHub"
-        F[cards.json, sets.json, rarity.json]
-        G[images/*]
+    subgraph "External Data (GitHub)"
+        F["cards.json, sets.json, rarity.json"]
+        G["images/*"]
     end
 
-    A -- HTTP Requests --> B
-    A -- Checks/Reads --> A_Cache
-    A_Cache -- If Stale/Empty --> A
-    A -- Fetches Card Data --> F
-    A -- Fetches Images --> G
+    A -- "HTTP Requests" --> B
+    A -- "Checks/Reads Cache" --> A_Cache
+    A_Cache -- "If Stale/Empty" --> A
+    A -- "Fetches Card Data" --> F
+    A -- "Fetches Images" --> G
     A -- "API Calls (Login, Save Lists)" --> C
 
-    B -- Renders HTML/JS/CSS --> A
-    C -- DB Queries --> E
-    C -- Auth Checks --> D
-    D -- Manages Users --> E
+    B -- "Renders HTML/JS/CSS" --> A
+    C -- "DB Queries" --> E
+    C -- "Auth Checks" --> D
+    D -- "Manages Users" --> E
 ```
 
 **Flow Description:**

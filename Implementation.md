@@ -101,7 +101,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Build the user interface for signing in and creating an account.
 - **Steps:**
-  1.  Create a new page file at `app/login/page.tsx`.
+  1.  Create a new page file at `src/app/login/page.tsx`.
   2.  This page must be a Client Component. Add `"use client";` to the top of the file.
   3.  Build a React component with a form containing fields for:
       - Email (`type="email"`)
@@ -119,7 +119,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Make the login and signup forms functional.
 - **Steps:**
-  1.  Create the API route file `app/api/auth/signup/route.ts`.
+  1.  Create the API route file `src/app/api/auth/signup/route.ts`.
   2.  In this file, export an async function named `POST` that accepts a `Request` object.
 
       ```typescript
@@ -136,7 +136,7 @@ The tasks are ordered by dependency. Complete them sequentially.
   5.  Use a server-side Supabase client (see Supabase docs for App Router setup) to perform the signup: `const { data, error } = await supabase.auth.signUp({ email, password })`.
   6.  If the signup is successful, insert a new row into the `profiles` table with the `id` from `data.user.id`, `username`, and `friendId`.
   7.  Return a `NextResponse.json()` with a success or error message.
-  8.  Create the API route file `app/api/auth/login/route.ts` and implement a similar `POST` handler for login using `supabase.auth.signInWithPassword({ email, password })`.
+  8.  Create the API route file `src/app/api/auth/login/route.ts` and implement a similar `POST` handler for login using `supabase.auth.signInWithPassword({ email, password })`.
   9.  Connect the UI forms from Task 1.4 to call these API endpoints upon submission.
 
 **Task 1.6: Implement Global Auth State and Navbar**
@@ -145,7 +145,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 - **Steps:**
   1.  Create a global context for authentication in a file like `context/AuthContext.tsx`. This must be a client component (`"use client";`).
   2.  In this context provider, use `useState` and `useEffect` to listen to Supabase's `onAuthStateChange` event. Store the user session in the context's state.
-  3.  In the root layout `app/layout.tsx`, wrap the `children` prop with your new `AuthProvider`.
+  3.  In the root layout `src/app/layout.tsx`, wrap the `children` prop with your new `AuthProvider`.
 
       ```tsx
       // app/layout.tsx
@@ -221,7 +221,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the main page for users to manage their lists, including tabs and filters.
 - **Steps:**
-  1.  Create the page file `app/cards/page.tsx`. This page must be a client component (`"use client";`).
+  1.  Create the page file `src/app/cards/page.tsx`. This page must be a client component (`"use client";`).
   2.  At the top, create a `TabNavigation` component with two buttons: "Wishlist" and "Trade List". Manage the active tab with `useState`.
   3.  Below the tabs, add UI controls:
       - An `<input type="text">` for searching by name.
@@ -233,7 +233,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Populate the Card Management page with cards and make the filters work.
 - **Steps:**
-  1.  In `app/cards/page.tsx`, call the `usePokemonData()` hook to get the card data.
+  1.  In `src/app/cards/page.tsx`, call the `usePokemonData()` hook to get the card data.
   2.  Use `useMemo` to create a `filteredCards` array. This memoized value should re-calculate whenever the source `data`, `searchQuery`, or `rarityFilter` changes.
   3.  The filtering logic should be case-insensitive and check if the card's name includes the search query and if its rarity matches the filter.
   4.  Render the `filteredCards` array in a responsive grid layout using Tailwind CSS (`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4`).
@@ -245,8 +245,8 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** When the `/cards` page loads, fetch the user's saved lists and initialize the selection state.
 - **Steps:**
-  1.  Create the protected API route `app/api/user/me/route.ts`. It should query and return the user's `profiles`, `user_wishlist` identifiers, and `user_trade_list` identifiers.
-  2.  In `app/cards/page.tsx`, use a library like SWR (`useSWR`) to fetch data from `/api/user/me`.
+  1.  Create the protected API route `src/app/api/user/me/route.ts`. It should query and return the user's `profiles`, `user_wishlist` identifiers, and `user_trade_list` identifiers.
+  2.  In `src/app/cards/page.tsx`, use a library like SWR (`useSWR`) to fetch data from `/api/user/me`.
   3.  Create two `Set` objects in state: `wishlistSelection` and `tradeListSelection`.
   4.  In a `useEffect` hook that runs when the user data loads, initialize these `Set`s with the card identifiers returned from the API.
   5.  Pass the correct `isSelected` prop to each `<Card />` component based on the active tab and whether the card's ID is in the corresponding selection set.
@@ -255,7 +255,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Allow users to click on cards to add or remove them from their selections.
 - **Steps:**
-  1.  Create the `onToggle` function in `app/cards/page.tsx`.
+  1.  Create the `onToggle` function in `src/app/cards/page.tsx`.
   2.  This function should:
       - Check which tab is active ("wishlist" or "tradeList").
       - If "tradeList", check if the toggled card's rarity is one of the allowed types. If not, show a notification (e.g., using a toast library like `react-hot-toast`) and return early.
@@ -267,17 +267,17 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the endpoints that will persist the user's changes to the database.
 - **Steps:**
-  1.  Create the protected API route `app/api/user/wishlist/batch-update/route.ts`.
+  1.  Create the protected API route `src/app/api/user/wishlist/batch-update/route.ts`.
   2.  Export a `POST` function that accepts a `NextRequest`.
   3.  Parse the body: `const { toAdd, toRemove }: { toAdd: string[]; toRemove: string[] } = await request.json()`.
   4.  Use a server-side Supabase client to `insert` the `toAdd` array and `delete` from the `toRemove` array.
-  5.  Repeat this process for `app/api/user/tradelist/batch-update/route.ts`.
+  5.  Repeat this process for `src/app/api/user/tradelist/batch-update/route.ts`.
 
 **Task 3.4: Implement "Save Changes" Functionality**
 
 - **Goal:** Allow the user to commit their changes from the UI to the backend.
 - **Steps:**
-  1.  In `app/cards/page.tsx`, keep track of the initial lists fetched from the server.
+  1.  In `src/app/cards/page.tsx`, keep track of the initial lists fetched from the server.
   2.  Create a `SaveChangesBar` component that is only visible when the current selection sets differ from the initial lists.
   3.  The "Save" button in this bar will:
       - Calculate the differences (`toAdd`, `toRemove`) for both the wishlist and tradelist.
@@ -293,7 +293,7 @@ The tasks are ordered by dependency. Complete them sequentially.
       ```bash
       npm install @supabase/ssr cookies-next
       ```
-  2.  **Refactor the `batch-update` API:** Open `app/api/user/wishlist/batch-update/route.ts`. Use the Supabase server client for the App Router, which automatically handles session management and CSRF protection from cookies.
+  2.  **Refactor the `batch-update` API:** Open `src/app/api/user/wishlist/batch-update/route.ts`. Use the Supabase server client for the App Router, which automatically handles session management and CSRF protection from cookies.
 
       ```typescript
       import { createServerClient } from "@supabase/ssr";
@@ -348,9 +348,9 @@ The tasks are ordered by dependency. Complete them sequentially.
       ```
 
   3.  **Apply the Pattern:** Apply this same security pattern to all other API routes that handle `POST` requests or modify data:
-      - `app/api/user/tradelist/batch-update/route.ts`
-      - `app/api/auth/signup/route.ts`
-      - `app/api/auth/login/route.ts`
+      - `src/app/api/user/tradelist/batch-update/route.ts`
+      - `src/app/api/auth/signup/route.ts`
+      - `src/app/api/auth/login/route.ts`
 
 ### Phase 4: Matchmaking
 
@@ -358,7 +358,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Create the core logic that finds potential trades.
 - **Steps:**
-  1.  Create the protected API route `app/api/matches/route.ts`.
+  1.  Create the protected API route `src/app/api/matches/route.ts`.
   2.  Inside the `GET` route handler, implement a simple in-memory cache for the `cards.json` data to avoid re-fetching on every call.
   3.  Get the current user's session using a server-side Supabase client.
   4.  Fetch the user's wishlist and tradelist.
@@ -372,7 +372,7 @@ The tasks are ordered by dependency. Complete them sequentially.
 
 - **Goal:** Display the found matches to the user in a clear, actionable way.
 - **Steps:**
-  1.  Create the protected page `app/matches/page.tsx`. This must be a client component to use SWR.
+  1.  Create the protected page `src/app/matches/page.tsx`. This must be a client component to use SWR.
   2.  Use SWR to fetch data from `/api/matches`.
   3.  Display a loading indicator while the data is being fetched.
   4.  If no matches are found, display a friendly message.
@@ -461,7 +461,7 @@ The tasks are ordered by dependency. Complete them sequentially.
       - The `@supabase/ssr` library's `createServerClient` (for Route Handlers) and `createBrowserClient` (for Client Components) work together to handle CSRF protection automatically using cookies.
       - Ensure you are using these official Supabase helper clients for all database and auth operations to benefit from this built-in protection. No manual implementation of the "Double Submit Cookie" pattern is required.
   3.  **Add Server-Side Input Sanitization:**
-      - In the `app/api/auth/signup/route.ts` endpoint, add logic to sanitize the `username` field before saving it to the database.
+      - In the `src/app/api/auth/signup/route.ts` endpoint, add logic to sanitize the `username` field before saving it to the database.
       - Use a library or regex to strip characters that could be part of HTML/script tags (e.g., `<`, `>`).
 
 **Task 5.4: Vercel Deployment**

@@ -78,9 +78,7 @@ export function usePokemonData() {
         localStorage.setItem(CACHE_KEY, JSON.stringify(newCache));
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err
-            : new Error("An unknown error occurred"),
+          err instanceof Error ? err : new Error("An unknown error occurred"),
         );
         toast.error("Could not load Pokémon card data.");
       } finally {

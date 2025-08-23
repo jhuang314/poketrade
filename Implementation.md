@@ -7,6 +7,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
 ### Phase 1: Project Setup & Core Foundations
 
 **Task 1.1: Initialize Next.js Project**
+
 - **Goal:** Create a new Next.js application with TypeScript and Tailwind CSS.
 - **Steps:**
   - 1. Run `npx create-next-app@latest --ts --tailwind .`
@@ -14,6 +15,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 3. Set up directory structure (e.g., `components`, `hooks`, `lib`, `app/api`).
 
 **Task 1.2: Set Up Supabase**
+
 - **Goal:** Configure a new Supabase project and define the database schema.
 - **Steps:**
   - 1. Create a new project on the Supabase dashboard.
@@ -23,6 +25,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 5. Store Supabase URL and anon key in environment variables (`.env.local`).
 
 **Task 1.3: Implement User Authentication**
+
 - **Goal:** Create the backend and frontend for user signup, login, and logout.
 - **Steps:**
   - 1. Create API route `/api/auth/signup` to handle user registration using Supabase Auth.
@@ -37,6 +40,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
 ### Phase 2: Displaying Pokémon Card Data
 
 **Task 2.1: Create Data Fetching Hook**
+
 - **Goal:** Develop a custom React hook to fetch and cache Pokémon card data on the client-side.
 - **Steps:**
   - 1. Create a `usePokemonData` hook.
@@ -46,6 +50,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 5. The hook should return the data, loading state, and any errors.
 
 **Task 2.2: Build the Card Management UI Shell**
+
 - **Goal:** Create the main page for users to browse cards and manage their lists.
 - **Steps:**
   - 1. Create the `/cards` page.
@@ -55,6 +60,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 5. Create the `Card` component to display a single card's image and basic info.
 
 **Task 2.3: Implement Client-Side Filtering**
+
 - **Goal:** Enable users to search and filter the full card list instantly in the browser.
 - **Steps:**
   - 1. Add state management (`useState`) to the `/cards` page for search terms and filter selections.
@@ -66,6 +72,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
 ### Phase 3: User List Management
 
 **Task 3.1: Fetch User's Lists**
+
 - **Goal:** Retrieve the logged-in user's existing Wishlist and Trade List from the database.
 - **Steps:**
   - 1. Create the API route `GET /api/user/me`.
@@ -73,6 +80,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 3. On the `/cards` page, call this API after the page loads to get the user's saved lists.
 
 **Task 3.2: Implement Card Selection Logic**
+
 - **Goal:** Allow users to add and remove cards from the active list.
 - **Steps:**
   - 1. Manage the "selected" state for both the Wishlist and Trade List on the `/cards` page (e.g., using two `Set` objects).
@@ -81,6 +89,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 4. Implement the trading rule: prevent selection of cards with non-tradable rarities when the "Trade List" tab is active.
 
 **Task 3.3: Implement Batch Updates**
+
 - **Goal:** Save changes to the user's lists efficiently with a single action.
 - **Steps:**
   - 1. Create the API route `POST /api/user/wishlist/batch-update`.
@@ -94,6 +103,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
 ### Phase 4: Matchmaking
 
 **Task 4.1: Create Matchmaking API Endpoint**
+
 - **Goal:** Develop the core server-side logic to find potential trades.
 - **Steps:**
   - 1. Create the API route `GET /api/matches`.
@@ -103,20 +113,22 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 5. The endpoint should return a structured list of matches for the currently authenticated user.
 
 **Task 4.2: Build the Matches Page**
+
 - **Goal:** Create a UI to display the user's potential trade partners.
 - **Steps:**
   - 1. Create the `/matches` page.
   - 2. On page load, fetch data from the `/api/matches` endpoint.
   - 3. Render the list of matches, clearly showing:
-      - The partner's `username` and `friend_id`.
-      - "You Give:" followed by the `<Card />` component for your offered card.
-      - "You Get:" followed by the `<Card />` component for their offered card.
+    - The partner's `username` and `friend_id`.
+    - "You Give:" followed by the `<Card />` component for your offered card.
+    - "You Get:" followed by the `<Card />` component for their offered card.
 
 ---
 
 ### Phase 5: Security Hardening
 
 **Task 5.1: Implement API Rate Limiting**
+
 - **Goal:** Protect the API from brute-force attacks and resource exhaustion.
 - **Steps:**
   - 1. Create a middleware function that intercepts requests to sensitive API routes.
@@ -125,6 +137,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 4. Apply this middleware to all `/api/auth/*`, `/api/user/*`, and `/api/matches` routes.
 
 **Task 5.2: Implement CSRF Protection**
+
 - **Goal:** Prevent Cross-Site Request Forgery attacks on all state-changing endpoints.
 - **Steps:**
   - 1. Extend the API middleware to manage CSRF tokens using the "Double Submit Cookie" pattern.
@@ -133,6 +146,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 4. The middleware must verify that the token in the request header matches the token in the cookie before allowing the request to proceed.
 
 **Task 5.3: Implement Server-Side Input Sanitization**
+
 - **Goal:** Mitigate the risk of Stored Cross-Site Scripting (XSS) by cleaning user-provided input.
 - **Steps:**
   - 1. In the `/api/auth/signup` endpoint, intercept the user-provided `username`.
@@ -140,6 +154,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 3. Ensure only the sanitized `username` is passed to the Supabase client for storage.
 
 **Task 5.4: Ensure Secure Error Handling**
+
 - **Goal:** Prevent user enumeration by returning generic error messages from authentication endpoints.
 - **Steps:**
   - 1. Review the `catch` blocks and error response logic in the `/api/auth/login` and `/api/auth/signup` routes.
@@ -151,6 +166,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
 ### Phase 6: Finalization & Deployment
 
 **Task 6.1: Comprehensive Responsive Styling**
+
 - **Goal:** Ensure the application is fully usable and looks polished on all screen sizes, from mobile to desktop.
 - **Steps:**
   - 1. Review every page and component.
@@ -158,6 +174,7 @@ This document breaks down the implementation of the Pokémon TCG Pocket Matchmak
   - 3. Test on real devices or in a browser's device emulator.
 
 **Task 6.2: Final Testing and Deployment**
+
 - **Goal:** Perform final checks and deploy the application to Vercel.
 - **Steps:**
   - 1. Manually test all application features: signup, login, list management, and matchmaking.

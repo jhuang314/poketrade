@@ -123,6 +123,25 @@ src
       -- Policies for 'user_trade_list'
       CREATE POLICY "Allow individual write access to own tradelist" ON public.user_trade_list FOR ALL USING (auth.uid() = user_id);
       CREATE POLICY "Allow authenticated users to read tradelists" ON public.user_trade_list FOR SELECT USING (auth.role() = 'authenticated');
+
+      -- Function to create a profile for a new user
+      CREATE OR REPLACE FUNCTION public.handle_new_user()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        INSERT INTO public.profiles (id, username, friend_id)
+        VALUES (
+          new.id,
+          new.raw_user_meta_data->>'username',
+          new.raw_user_meta_data->>'friend_id'
+        );
+        RETURN new;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+      -- Trigger to run the function after a new user is created
+      CREATE TRIGGER on_auth_user_created
+        AFTER INSERT ON auth.users
+        FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
       ```
 
 **Task 1.3: Configure Supabase Clients & Environment**
@@ -300,44 +319,24 @@ src
 
         const { email, password, username, friendId } = validation.data;
 
-        const {
-          data: { user },
-          error: signUpError,
-        } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          // Pass metadata to be used by the trigger
+          options: {
+            data: {
+              username: username,
+              friend_id: friendId,
+            },
+          },
         });
 
         if (signUpError) {
+          // If the error is due to a unique constraint in your profiles table,
+          // Supabase will now return a more specific error message.
           return NextResponse.json(
             { error: signUpError.message },
             { status: 400 },
-          );
-        }
-        if (!user) {
-          return NextResponse.json(
-            { error: "Signup failed, please try again." },
-            { status: 500 },
-          );
-        }
-
-        // Insert profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: user.id,
-          username,
-          friend_id: friendId,
-        });
-
-        if (profileError) {
-          // If profile creation fails, use an admin client to delete the user
-          const supabaseAdmin = createAdminClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          );
-          await supabaseAdmin.auth.admin.deleteUser(user.id);
-          return NextResponse.json(
-            { error: "Could not create user profile." },
-            { status: 500 },
           );
         }
 
@@ -1339,6 +1338,7 @@ src
       let cardDataCache: Card[] | null = null;
       let cacheTimestamp = 0;
       const CACHE_DURATION_MS = 6 * 60 * 60 * 1000; // 6 hours
+      const ALLOWED_TRADE_RARITIES = new Set(["C", "U", "R", "RR", "AR"]);
 
       async function getCardData(): Promise<Map<string, string>> {
         if (!cardDataCache || Date.now() - cacheTimestamp > CACHE_DURATION_MS) {
@@ -1395,7 +1395,11 @@ src
             myListsRes.data.user_wishlist.map((c) => c.card_identifier),
           );
           const myTradelistIds = new Set(
-            myListsRes.data.user_trade_list.map((c) => c.card_identifier),
+            myListsRes.data.user_trade_list
+              .map((c) => c.card_identifier)
+              .filter((id) =>
+                ALLOWED_TRADE_RARITIES.has(cardRarityMap.get(id)!),
+              ),
           );
 
           // Find other users who have cards I want and want cards I have
@@ -1424,7 +1428,11 @@ src
               partner.user_wishlist.map((c) => c.card_identifier),
             );
             const partnerHas = new Set(
-              partner.user_trade_list.map((c) => c.card_identifier),
+              partner.user_trade_list
+                .map((c) => c.card_identifier)
+                .filter((id) =>
+                  ALLOWED_TRADE_RARITIES.has(cardRarityMap.get(id)!),
+                ),
             );
 
             // Find cards I have that the partner wants

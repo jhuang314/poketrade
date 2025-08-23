@@ -45,8 +45,8 @@ graph TD
     end
 
     subgraph Vercel Platform
-        B[Next.js Frontend (Static Shells)]
-        C[Next.js API Routes (Auth/DB only)]
+        B["Next.js Frontend (Static Shells)"]
+        C["Next.js API Routes (Auth/DB only)"]
     end
 
     subgraph Supabase Cloud
@@ -54,7 +54,7 @@ graph TD
         E[PostgreSQL Database]
     end
 
-    subgraph External Data (GitHub)
+    subgraph External Data "GitHub"
         F[cards.json, sets.json, rarity.json]
         G[images/*]
     end
@@ -64,7 +64,7 @@ graph TD
     A_Cache -- If Stale/Empty --> A
     A -- Fetches Card Data --> F
     A -- Fetches Images --> G
-    A -- API Calls (Login, Save Lists) --> C
+    A -- "API Calls (Login, Save Lists)" --> C
 
     B -- Renders HTML/JS/CSS --> A
     C -- DB Queries --> E

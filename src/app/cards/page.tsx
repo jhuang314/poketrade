@@ -21,12 +21,8 @@ export default function CardsPage() {
   const [rarityFilter, setRarityFilter] = useState("");
 
   // Placeholder for user selections - will be populated in Phase 3
-  const [wishlistSelection, _setWishlistSelection] = useState<Set<string>>(
-    new Set(),
-  );
-  const [tradeListSelection, _setTradeListSelection] = useState<Set<string>>(
-    new Set(),
-  );
+  const [wishlistSelection] = useState<Set<string>>(new Set());
+  const [tradeListSelection] = useState<Set<string>>(new Set());
 
   const filteredCards = useMemo(() => {
     if (!allCards) return [];

@@ -169,10 +169,15 @@ export default function CardsPage() {
     setTradeListSelection(new Set(initialTradeList));
   };
 
+  console.log(authLoading, cardsLoading, userDataLoading);
+
   if (authLoading || cardsLoading || userDataLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner />
+        <div>{authLoading}</div>
+        <div>{cardsLoading}</div>
+        <div>{userDataLoading}</div>
       </div>
     );
   }

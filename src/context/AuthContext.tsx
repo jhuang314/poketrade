@@ -19,25 +19,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: userProfile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(userProfile);
-      }
-      setLoading(false);
-    };
-    getSession();
-
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log("session", session, "_event", _event);
         setUser(session?.user ?? null);
         if (session?.user) {
           const { data: userProfile } = await supabase
@@ -49,9 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
         }
-        if (_event === "SIGNED_IN" || _event === "SIGNED_OUT") {
-          setLoading(false);
-        }
+        setLoading(false);
       },
     );
 

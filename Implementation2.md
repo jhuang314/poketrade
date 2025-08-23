@@ -306,7 +306,7 @@ src
 
       export async function POST(request: Request) {
         const cookieStore = cookies();
-        const supabase = createClient(cookieStore);
+        const supabase = await createClient(cookieStore);
         const body = await request.json();
 
         const validation = signupSchema.safeParse(body);
@@ -363,7 +363,7 @@ src
 
       export async function POST(request: Request) {
         const cookieStore = cookies();
-        const supabase = createClient(cookieStore);
+        const supabase = await createClient(cookieStore);
         const body = await request.json();
 
         const validation = loginSchema.safeParse(body);
@@ -1026,7 +1026,7 @@ src
 
       export async function GET() {
         const cookieStore = cookies();
-        const supabase = createClient(cookieStore);
+        const supabase = await createClient(cookieStore);
 
         const {
           data: { session },
@@ -1092,7 +1092,7 @@ src
 
       export async function POST(request: Request) {
         const cookieStore = cookies();
-        const supabase = createClient(cookieStore);
+        const supabase = await createClient(cookieStore);
 
         const {
           data: { session },
@@ -1363,7 +1363,7 @@ src
 
       export async function GET() {
         const cookieStore = cookies();
-        const supabase = createClient(cookieStore);
+        const supabase = await createClient(cookieStore);
 
         const {
           data: { session },

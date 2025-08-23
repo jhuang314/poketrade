@@ -17,16 +17,19 @@ export default function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("email", email);
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    console.log("error", error);
+
     if (!error) {
       toast.success("Login successful!");
       // router.push('/dashboard');
       router.push("/cards");
-      router.refresh(); // Important to re-fetch server components
     } else {
       toast.error(error.message || "An unknown error occurred.");
     }

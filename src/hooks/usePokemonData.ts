@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, RawCard, SetData, RarityData } from "@/lib/types";
 import toast from "react-hot-toast";
+import { User } from "@supabase/supabase-js";
 
 const CACHE_KEY = "pokemon_data_cache";
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -19,7 +20,7 @@ interface CacheData {
   data: Card[];
 }
 
-export function usePokemonData() {
+export function usePokemonData(user: User | null) {
   const [data, setData] = useState<Card[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -27,6 +28,7 @@ export function usePokemonData() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setError(null);
       try {
         // 1. Check cache first
         const cachedItem = localStorage.getItem(CACHE_KEY);
@@ -86,8 +88,15 @@ export function usePokemonData() {
       }
     };
 
-    fetchData();
-  }, []);
+    if (user) {
+      fetchData();
+    } else {
+      // No user, don't fetch data, ensure loading is false and data is cleared.
+      setData(null);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [user]);
 
   return { data, isLoading, error };
 }

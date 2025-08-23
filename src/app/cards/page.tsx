@@ -21,7 +21,7 @@ export default function CardsPage() {
     data: allCards,
     isLoading: cardsLoading,
     error: cardsError,
-  } = usePokemonData();
+  } = usePokemonData(user);
   const {
     data: userData,
     error: userError,

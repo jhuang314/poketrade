@@ -21,6 +21,12 @@ export default function ProtectedLayout({
             >
               My Collection
             </Link>
+            <Link
+              href="/matches"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Matches
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}

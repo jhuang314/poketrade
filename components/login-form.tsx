@@ -39,7 +39,7 @@ export function LoginForm({
       });
       if (error) throw error;
       // Redirect to an authenticated route.
-      router.push("/protected");
+      router.push("/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

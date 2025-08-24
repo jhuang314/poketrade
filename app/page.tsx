@@ -5,8 +5,14 @@ import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pokeball } from "@/components/pokeball";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col items-center">
@@ -14,6 +20,28 @@ export default function Home() {
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             <div className="flex gap-5 items-center font-semibold">
               <Link href={"/"}>PokéTrade</Link>
+              {user && (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/cards"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    My Collection
+                  </Link>
+                  <Link
+                    href="/matches"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Matches
+                  </Link>
+                </>
+              )}
             </div>
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
@@ -29,7 +57,9 @@ export default function Home() {
           </div>
           <div className="flex justify-center">
             <Button asChild size="lg">
-              <Link href="/auth/sign-up">Get Started</Link>
+              <Link href={user ? "/dashboard" : "/auth/sign-up"}>
+                {user ? "Go to Dashboard" : "Get Started"}
+              </Link>
             </Button>
           </div>
         </div>

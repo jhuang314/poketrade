@@ -1,10 +1,11 @@
+// poketrade/app/(authenticated)/layout.tsx
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 
-export default function ProtectedLayout({
+export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -15,6 +16,12 @@ export default function ProtectedLayout({
         <div className="w-full max-w-5xl flex items-center justify-between p-3 px-5 text-sm">
           <div className="flex items-center gap-5 font-semibold">
             <Link href="/">PokéTrade</Link>
+            <Link
+              href="/dashboard"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Dashboard
+            </Link>
             <Link
               href="/cards"
               className="text-muted-foreground transition-colors hover:text-foreground"

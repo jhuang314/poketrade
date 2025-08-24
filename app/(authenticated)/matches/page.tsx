@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { User } from "@supabase/supabase-js";
+
 import {
   Card,
   CardContent,
@@ -26,7 +26,6 @@ export default function MatchesPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [user, setUser] = useState<User | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +41,6 @@ export default function MatchesPage() {
         router.push("/auth/login");
         return;
       }
-      setUser(user);
 
       const { data, error } = await supabase.rpc("find_trade_matches");
 

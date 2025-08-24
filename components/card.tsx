@@ -1,8 +1,8 @@
 // poketrade/components/card.tsx
-
 "use client";
 
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 // Re-exporting interfaces to be used across components
 export interface CardLabel {
@@ -65,12 +65,13 @@ export function Card({ card, isSelected, onToggle, activeList }: CardProps) {
           : `${card.label.eng} (${card.rarity})`
       }
     >
-      <img
+      <Image
         src={imageUrl}
         alt={card.label.eng}
-        loading="lazy"
+        fill
+        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
         className={cn(
-          "h-full w-full object-cover transition-all duration-200",
+          "object-cover transition-all duration-200",
           // Apply grayscale if the card is not selected and not disabled
           !isSelected && !isDisabled && "grayscale",
         )}

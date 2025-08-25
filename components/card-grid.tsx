@@ -1,4 +1,4 @@
-import { Card, type CardData } from "./card";
+import { Card, type CardData } from "@/components/card";
 
 type ActiveList = "wishlist" | "tradelist";
 
